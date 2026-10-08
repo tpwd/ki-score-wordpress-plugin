@@ -1,0 +1,78 @@
+# KIscore for WordPress
+
+WordPress plugin that reports page views to [KIscore](https://kiscore.ai), so
+AI crawler hits and visits referred by ChatGPT, Perplexity & co. show up in
+Traffic Overview. Server-side, without script or cookie. The user-facing
+description is in [readme.txt](readme.txt).
+
+## For site owners
+
+1. Download `kiscore.zip` and upload it under **Plugins → Add New → Upload Plugin**, then activate it.
+2. Copy site ID and tracking secret from **Traffic Overview → Integration** in the KIscore dashboard.
+3. Enter both under **Settings → KIscore**, save, click **Check connection**.
+
+Behind a proxy or CDN, also enter the header that carries the visitor IP (the
+settings page warns when it sees a private address). Site ID, secret and IP
+header can instead be defined in `wp-config.php` or as environment variables:
+`KISCORE_SITE_ID`, `KISCORE_TRACKING_SECRET`, `KISCORE_CLIENT_IP_HEADER`.
+`KISCORE_API_ENDPOINT` points the plugin at another API, e.g. in tests.
+
+## How it works
+
+- `template_redirect` (priority 20, after canonical redirects) decides whether
+  the request is a frontend page view: GET, HTML, no admin/REST/AJAX/cron/feed/
+  robots/preview, no browser fetch or prefetch (`Sec-Fetch-Mode`,
+  `Sec-Purpose`), and a single valid visitor IP.
+- The report runs on `shutdown`. On PHP-FPM and LiteSpeed the page is handed
+  to the visitor first (`fastcgi_finish_request`); elsewhere the request is
+  limited to one second. Redirect responses are not reported.
+- Sent: path plus `utm_*` parameters, user agent, referrer, visitor IP. The
+  secret travels in `X-Kiscore-Tracking-Secret`; redirects are refused.
+- The settings page shows the last API answer (stored when it changes, at most
+  hourly otherwise) and offers a connection check that sends no visitor data.
+
+## Development
+
+```bash
+composer install
+composer test          # unit tests (Page_View)
+composer test:php74    # syntax and unit tests on PHP 7.4, the minimum (Docker)
+composer lint          # WordPress coding standards
+composer test:e2e      # real WordPress in Docker: Apache/mod_php and nginx/PHP-FPM
+composer build         # dist/kiscore.zip
+```
+
+The e2e stack (`tests/e2e/docker-compose.yml`) keeps running after a test run
+and is reachable at http://localhost:8091 (Apache) and http://localhost:8092
+(PHP-FPM); the test admin is defined in `tests/e2e/run.sh`. Remove it with
+`docker compose -f tests/e2e/docker-compose.yml down -v`. WordPress' own
+review tool runs against the built zip:
+
+```bash
+cd tests/e2e
+docker compose run --rm cli wp plugin install plugin-check --activate
+docker compose run --rm cli wp plugin check /var/www/html/wp-content/plugins/kiscore/dist/kiscore
+```
+
+It reports one expected warning: `load_plugin_textdomain()` loads the bundled
+German translations, which a plugin outside wordpress.org needs.
+
+### Translations
+
+Source strings are English. `languages/translate.py` holds the German texts
+and writes `de_DE` (du) and `de_DE_formal` (Sie); it fails on a missing
+translation or on wording that addresses the reader without both variants.
+
+```bash
+cd tests/e2e && docker compose run --rm cli wp i18n make-pot wp-content/plugins/kiscore wp-content/plugins/kiscore/languages/kiscore.pot --exclude=vendor,tests,dist && cd ../..
+python3 languages/translate.py
+for l in de_DE de_DE_formal; do msgfmt -o languages/kiscore-$l.mo languages/kiscore-$l.po; done
+```
+
+### Release
+
+Bump the version in the plugin header, `KISCORE_VERSION` (both in
+`kiscore.php`) and `Stable tag` in `readme.txt`; `composer build` refuses to
+build when they differ. For the wordpress.org directory, `readme.txt` still
+needs a `Contributors:` line with wordpress.org user names and links to the
+KIscore terms and privacy policy in "External services".

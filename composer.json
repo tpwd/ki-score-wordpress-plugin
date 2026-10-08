@@ -1,0 +1,34 @@
+{
+  "name": "tpwd/kiscore-wordpress",
+  "description": "Development tooling for the KIscore WordPress plugin",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=7.4"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6",
+    "wp-coding-standards/wpcs": "^3"
+  },
+  "autoload-dev": {
+    "classmap": [
+      "includes/"
+    ]
+  },
+  "scripts": {
+    "test": "phpunit --testsuite unit",
+    "test:php74": "bin/test-php74.sh",
+    "test:e2e": "tests/e2e/run.sh",
+    "lint": "phpcs",
+    "build": "bin/build-zip.sh"
+  },
+  "config": {
+    "platform": {
+      "php": "7.4.33"
+    },
+    "sort-packages": true,
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}

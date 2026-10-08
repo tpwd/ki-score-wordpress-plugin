@@ -1,0 +1,84 @@
+# Local WordPress for the end-to-end tests: Apache with mod_php and nginx with
+# PHP-FPM against one database, plus a collector standing in for the KIscore
+# API. All passwords are local test values.
+name: kiscore-wp-e2e
+
+x-wordpress-env: &wordpress-env
+  WORDPRESS_DB_HOST: db
+  WORDPRESS_DB_NAME: wordpress
+  WORDPRESS_DB_USER: wordpress
+  WORDPRESS_DB_PASSWORD: e2e-db-password
+  KISCORE_API_ENDPOINT: http://collector:8080/track
+  # Both servers serve the same site on their own port.
+  WORDPRESS_CONFIG_EXTRA: |
+    define( 'WP_HOME', 'http://' . ( $$_SERVER['HTTP_HOST'] ?? 'localhost:8091' ) );
+    define( 'WP_SITEURL', WP_HOME );
+
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: e2e-db-password
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 2s
+      retries: 30
+
+  collector:
+    image: php:7.4-cli
+    command: php -S 0.0.0.0:8080 /collector/collector.php
+    environment:
+      PHP_CLI_SERVER_WORKERS: "4"
+    volumes:
+      # The directory, not the file: a bind-mounted file breaks when an editor replaces it.
+      - .:/collector:ro
+    ports:
+      - "${KISCORE_E2E_COLLECTOR_PORT:-8090}:8080"
+
+  apache:
+    image: wordpress:apache
+    environment: *wordpress-env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - apache-wp:/var/www/html
+      - ../..:/var/www/html/wp-content/plugins/kiscore:ro
+    ports:
+      - "${KISCORE_E2E_APACHE_PORT:-8091}:80"
+
+  fpm:
+    image: wordpress:fpm
+    environment: *wordpress-env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - fpm-wp:/var/www/html
+      - ../..:/var/www/html/wp-content/plugins/kiscore:ro
+
+  nginx:
+    image: nginx:alpine
+    depends_on: [fpm]
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - fpm-wp:/var/www/html:ro
+      - ../..:/var/www/html/wp-content/plugins/kiscore:ro
+    ports:
+      - "${KISCORE_E2E_FPM_PORT:-8092}:80"
+
+  cli:
+    image: wordpress:cli
+    profiles: [cli]
+    user: "33:33"
+    environment: *wordpress-env
+    volumes:
+      - apache-wp:/var/www/html
+      - ../..:/var/www/html/wp-content/plugins/kiscore
+
+volumes:
+  apache-wp:
+  fpm-wp:
