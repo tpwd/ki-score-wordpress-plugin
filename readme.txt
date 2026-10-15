@@ -3,7 +3,7 @@ Tags: ai, crawler, chatgpt, analytics, geo
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -64,6 +64,12 @@ For every reported page view it sends: the path with its `utm_*` parameters, the
 The "Check connection" button sends one request without visitor data.
 
 == Changelog ==
+
+= 1.0.1 =
+* The connection check accepts KIscore's answer instead of reporting HTTP 201 as an error.
+* The visitor IP header may also be entered as HTTP_X_REAL_IP.
+* An empty constant in wp-config.php no longer locks the settings field.
+* Deleting the plugin removes its settings on every site of a multisite network.
 
 = 1.0.0 =
 * First release.
