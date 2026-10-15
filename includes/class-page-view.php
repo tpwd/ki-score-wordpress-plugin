@@ -106,6 +106,17 @@ final class Page_View {
 	}
 
 	/**
+	 * A header name as HTTP spells it. Hosting docs often give the $_SERVER
+	 * key instead ("HTTP_X_REAL_IP"), which names the same header.
+	 *
+	 * @param string $name "X-Real-IP", "HTTP_X_REAL_IP" or "X_Real_IP".
+	 */
+	public static function header_name( string $name ): string {
+		$name = str_replace( '_', '-', (string) preg_replace( '/[^A-Za-z0-9_-]/', '', $name ) );
+		return (string) preg_replace( '/^HTTP-/i', '', $name );
+	}
+
+	/**
 	 * The visitor IP from REMOTE_ADDR or from a header that the hosting proxy
 	 * overwrites. Lists and anything but a single IP are rejected.
 	 *
@@ -113,8 +124,9 @@ final class Page_View {
 	 * @param string $ip_header Header name, e.g. "X-Real-IP". Empty: REMOTE_ADDR.
 	 */
 	public static function client_ip( array $server, string $ip_header ): ?string {
-		$key   = '' === $ip_header ? 'REMOTE_ADDR' : 'HTTP_' . strtoupper( str_replace( '-', '_', $ip_header ) );
-		$value = trim( (string) ( $server[ $key ] ?? '' ) );
+		$header = self::header_name( $ip_header );
+		$key    = '' === $header ? 'REMOTE_ADDR' : 'HTTP_' . strtoupper( str_replace( '-', '_', $header ) );
+		$value  = trim( (string) ( $server[ $key ] ?? '' ) );
 
 		return false === filter_var( $value, FILTER_VALIDATE_IP ) ? null : $value;
 	}

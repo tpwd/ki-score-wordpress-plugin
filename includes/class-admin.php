@@ -304,9 +304,11 @@ final class Admin {
 	 * @param string $error  Transport error, if any.
 	 */
 	private static function describe( int $status, string $error ): string {
+		if ( Tracker::accepted( $status ) ) {
+			return __( 'KIscore accepts data from this site.', 'kiscore' );
+		}
+
 		switch ( $status ) {
-			case 200:
-				return __( 'KIscore accepts data from this site.', 'kiscore' );
 			case 401:
 				return __( 'KIscore rejected the site ID or tracking secret (HTTP 401). Copy both again from the KIscore dashboard.', 'kiscore' );
 			case 422:

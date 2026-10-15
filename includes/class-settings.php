@@ -50,11 +50,8 @@ final class Settings {
 	 */
 	public static function source( string $field ): string {
 		$name = self::FIELDS[ $field ];
-		if ( defined( $name ) ) {
-			return 'constant';
-		}
 		if ( null !== self::external( $name ) ) {
-			return 'environment';
+			return defined( $name ) ? 'constant' : 'environment';
 		}
 		return '' === self::get( $field ) ? '' : 'option';
 	}
@@ -90,20 +87,18 @@ final class Settings {
 		return array(
 			'site_id'          => trim( sanitize_text_field( (string) ( $input['site_id'] ?? '' ) ) ),
 			'tracking_secret'  => '' === $secret ? (string) ( $stored['tracking_secret'] ?? '' ) : $secret,
-			'client_ip_header' => (string) preg_replace( '/[^A-Za-z0-9-]/', '', (string) ( $input['client_ip_header'] ?? '' ) ),
+			'client_ip_header' => Page_View::header_name( (string) ( $input['client_ip_header'] ?? '' ) ),
 		);
 	}
 
 	/**
 	 * Value of a constant or environment variable, null when neither is set.
+	 * An empty value counts as unset, so the settings page stays editable.
 	 *
 	 * @param string $name Constant and environment variable name.
 	 */
 	private static function external( string $name ): ?string {
-		if ( defined( $name ) ) {
-			return trim( (string) constant( $name ) );
-		}
-		$value = getenv( $name );
+		$value = defined( $name ) ? (string) constant( $name ) : getenv( $name );
 		return false === $value || '' === trim( $value ) ? null : trim( $value );
 	}
 }

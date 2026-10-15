@@ -49,6 +49,21 @@ final class PageViewTest extends TestCase {
 		$this->assertSame( '10.0.0.5', Page_View::payload( $server )['ip'] );
 	}
 
+	// Hosting docs often name the header as a $_SERVER key. Settings or a
+	// constant in that spelling must not switch tracking off.
+	public function test_accepts_the_header_in_server_variable_spelling(): void {
+		$server = $this->server(
+			array(
+				'REMOTE_ADDR'    => '10.0.0.5',
+				'HTTP_X_REAL_IP' => '198.51.100.23',
+			)
+		);
+		foreach ( array( 'HTTP_X_REAL_IP', 'X_Real_IP', ' x-real-ip ' ) as $header ) {
+			$this->assertSame( '198.51.100.23', Page_View::payload( $server, $header )['ip'], $header );
+		}
+		$this->assertSame( 'X-Real-IP', Page_View::header_name( 'HTTP_X_Real_IP' ) );
+	}
+
 	// Without the visitor's own IP, KIscore would count every visit as one
 	// visitor with the IP of the proxy.
 	public function test_skips_requests_without_exactly_one_valid_ip(): void {

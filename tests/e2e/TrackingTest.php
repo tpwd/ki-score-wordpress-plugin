@@ -112,7 +112,7 @@ final class TrackingTest extends TestCase {
 
 	public function test_connection_check_reports_whether_the_credentials_are_accepted(): void {
 		$check = json_decode( self::wp( 'eval', 'echo wp_json_encode( Kiscore\Tracker::check_connection() );' ), true );
-		$this->assertSame( array( true, 200 ), array( $check['ok'], $check['status'] ) );
+		$this->assertSame( array( true, 201 ), array( $check['ok'], $check['status'] ) );
 
 		// No referrer, no utm parameters, no crawler: KIscore stores nothing.
 		$hit = self::hit_from( 'KIscore-WordPress-Connection-Check' );
@@ -121,6 +121,23 @@ final class TrackingTest extends TestCase {
 		self::configure( array( 'tracking_secret' => 'wrong-secret' ) + self::SETTINGS );
 		$check = json_decode( self::wp( 'eval', 'echo wp_json_encode( Kiscore\Tracker::check_connection() );' ), true );
 		$this->assertSame( array( false, 401 ), array( $check['ok'], $check['status'] ) );
+	}
+
+	// An empty constant counts as unset, like an empty environment variable;
+	// otherwise it locks the settings field while the site stays unconfigured.
+	public function test_an_empty_constant_leaves_the_setting_to_the_settings_page(): void {
+		self::wp( 'config', 'set', 'KISCORE_SITE_ID', '', '--type=constant' );
+		try {
+			$state = self::wp( 'eval', 'echo Kiscore\Settings::source( "site_id" ) . "|" . Kiscore\Settings::get( "site_id" );' );
+		} finally {
+			self::wp( 'config', 'delete', 'KISCORE_SITE_ID', '--type=constant' );
+		}
+		$this->assertSame( 'option|e2e-site', $state );
+	}
+
+	public function test_settings_keep_a_header_name_in_server_variable_spelling(): void {
+		$stored = self::wp( 'eval', 'echo Kiscore\Settings::sanitize( array( "client_ip_header" => "HTTP_X_REAL_IP" ) )["client_ip_header"];' );
+		$this->assertSame( 'X-REAL-IP', $stored );
 	}
 
 	public function test_remembers_the_last_answer_of_the_api(): void {

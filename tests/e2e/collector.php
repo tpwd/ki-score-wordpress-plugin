@@ -1,6 +1,6 @@
 <?php
 // Stands in for the KIscore API. POST /track/<site> records the hit and
-// answers 401 unless the tracking secret is "e2e-secret". GET /hits lists,
+// answers 201, or 401 unless the tracking secret is "e2e-secret". GET /hits lists,
 // DELETE /hits clears, POST /delay?seconds=N slows down later answers.
 $store = '/tmp/kiscore-hits.json';
 $delay = '/tmp/kiscore-delay';
@@ -47,6 +47,8 @@ if ( 0 === strpos( $path, '/track/' ) && 'POST' === $_SERVER['REQUEST_METHOD'] )
 		echo '{"error":"Unauthorized"}';
 		return;
 	}
+	// Like KIscore: Grape answers a POST with 201.
+	http_response_code( 201 );
 	echo '{"status":"ok","tracked":false}';
 	return;
 }
