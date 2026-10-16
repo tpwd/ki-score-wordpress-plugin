@@ -3,7 +3,7 @@
  * Plugin Name:       KIscore
  * Plugin URI:        https://kiscore.ai
  * Description:       Shows in KIscore which AI crawlers visit your site and which visitors come from ChatGPT, Perplexity and other AI assistants. Server-side, without script or cookie.
- * Version:           1.0.1
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            KIscore
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'KISCORE_VERSION', '1.0.1' );
+define( 'KISCORE_VERSION', '1.1.0' );
 define( 'KISCORE_FILE', __FILE__ );
 
 require_once __DIR__ . '/includes/class-page-view.php';

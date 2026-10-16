@@ -46,7 +46,21 @@ final class PageViewTest extends TestCase {
 			)
 		);
 		$this->assertSame( '2001:db8::1', Page_View::payload( $server, 'CF-Connecting-IP' )['ip'] );
-		$this->assertSame( '10.0.0.5', Page_View::payload( $server )['ip'] );
+	}
+
+	// Cloudflare sends the visitor IP in CF-Connecting-IP. Without a configured
+	// header the plugin takes it, otherwise every visitor would get an edge IP.
+	public function test_takes_the_cloudflare_visitor_ip_without_configuration(): void {
+		$server = $this->server(
+			array(
+				'REMOTE_ADDR'           => '172.68.1.10',
+				'HTTP_CF_CONNECTING_IP' => '198.51.100.23',
+			)
+		);
+		$this->assertSame( '198.51.100.23', Page_View::payload( $server )['ip'] );
+
+		$server['HTTP_CF_CONNECTING_IP'] = 'not-an-ip';
+		$this->assertSame( '172.68.1.10', Page_View::payload( $server )['ip'] );
 	}
 
 	// Hosting docs often name the header as a $_SERVER key. Settings or a

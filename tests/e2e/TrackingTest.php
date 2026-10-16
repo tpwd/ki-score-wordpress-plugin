@@ -8,9 +8,8 @@ use PHPUnit\Framework\TestCase;
 final class TrackingTest extends TestCase {
 
 	const SETTINGS = array(
-		'site_id'          => 'e2e-site',
-		'tracking_secret'  => 'e2e-secret',
-		'client_ip_header' => '',
+		'site_id'         => 'e2e-site',
+		'tracking_secret' => 'e2e-secret',
 	);
 
 	private static function port( string $name, int $fallback ): int {
@@ -95,16 +94,20 @@ final class TrackingTest extends TestCase {
 		$this->assertLessThan( $finishes_request_early ? 0.8 : 2.0, $response['seconds'] );
 	}
 
-	/**
-	 * @dataProvider servers
-	 */
-	public function test_reads_the_visitor_ip_from_the_configured_header( string $base ): void {
-		self::configure( array( 'client_ip_header' => 'X-Real-IP' ) + self::SETTINGS );
-
-		$without = 'KIscore-E2E-NoIp/' . uniqid();
-		self::get( $base, '/', array( 'User-Agent: ' . $without ) );
-		$agent = 'KIscore-E2E-Ip/' . uniqid();
-		self::get( $base, '/', array( 'User-Agent: ' . $agent, 'X-Real-IP: 198.51.100.23' ) );
+	// Only wp-config.php sets the header; the settings page has no field for
+	// it. wp-cli edits the wp-config.php of the Apache install only.
+	public function test_reads_the_visitor_ip_from_the_configured_header(): void {
+		list( $base ) = self::servers()['apache with mod_php'];
+		self::define_constant( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );
+		try {
+			$without = 'KIscore-E2E-NoIp/' . uniqid();
+			self::get( $base, '/', array( 'User-Agent: ' . $without ) );
+			$agent = 'KIscore-E2E-Ip/' . uniqid();
+			self::get( $base, '/', array( 'User-Agent: ' . $agent, 'X-Real-IP: 198.51.100.23' ) );
+			self::hit_from( $agent );
+		} finally {
+			self::remove_constant( 'KISCORE_CLIENT_IP_HEADER' );
+		}
 
 		$this->assertSame( '198.51.100.23', self::hit_from( $agent )['body']['ip'] );
 		$this->assertSame( array(), self::hits_from( $without ) );
@@ -135,9 +138,14 @@ final class TrackingTest extends TestCase {
 		$this->assertSame( 'option|e2e-site', $state );
 	}
 
-	public function test_settings_keep_a_header_name_in_server_variable_spelling(): void {
-		$stored = self::wp( 'eval', 'echo Kiscore\Settings::sanitize( array( "client_ip_header" => "HTTP_X_REAL_IP" ) )["client_ip_header"];' );
-		$this->assertSame( 'X-REAL-IP', $stored );
+	public function test_a_connection_key_constant_supplies_site_id_and_secret(): void {
+		self::wp( 'config', 'set', 'KISCORE_CONNECTION_KEY', 'const-site.const-secret', '--type=constant' );
+		try {
+			$state = self::wp( 'eval', 'echo Kiscore\Settings::source( "tracking_secret" ) . "|" . Kiscore\Settings::get( "site_id" ) . "|" . Kiscore\Settings::get( "tracking_secret" );' );
+		} finally {
+			self::wp( 'config', 'delete', 'KISCORE_CONNECTION_KEY', '--type=constant' );
+		}
+		$this->assertSame( 'constant|const-site|const-secret', $state );
 	}
 
 	public function test_remembers_the_last_answer_of_the_api(): void {
@@ -153,7 +161,7 @@ final class TrackingTest extends TestCase {
 		$this->assertSame( 401, $delivery['status'] );
 	}
 
-	public function test_settings_page_saves_the_site_id_and_keeps_the_secret_out_of_the_page(): void {
+	public function test_settings_page_saves_the_connection_key_and_keeps_the_secret_out_of_the_page(): void {
 		list( $base ) = self::servers()['apache with mod_php'];
 		$cookies      = tempnam( sys_get_temp_dir(), 'kiscore-e2e' );
 		self::get( $base, '/wp-login.php', array(), 'GET', null, $cookies );
@@ -168,34 +176,48 @@ final class TrackingTest extends TestCase {
 		}
 		$this->assertSame( 200, $page['status'] );
 		$this->assertStringContainsString( 'Verbindung prüfen', $page['body'] );
-		$this->assertStringContainsString( 'value="e2e-site"', $page['body'] );
+		$this->assertStringContainsString( 'Verbindungsschlüssel', $page['body'] );
+		$this->assertStringContainsString( 'e2e-site', $page['body'] );
 		$this->assertStringNotContainsString( 'e2e-secret', $page['body'] );
+		$this->assertStringNotContainsString( 'client_ip_header', $page['body'] );
 		$this->assertMatchesRegularExpression( '/name="_wpnonce" value="([^"]+)"/', $page['body'] );
 		preg_match( '/name="_wpnonce" value="([^"]+)"/', $page['body'], $nonce );
 
-		$form = http_build_query(
-			array(
-				'option_page'      => 'kiscore',
-				'action'           => 'update',
-				'_wpnonce'         => $nonce[1],
-				'kiscore_settings' => array(
-					'site_id'          => ' new-site ',
-					'tracking_secret'  => '',
-					'client_ip_header' => 'X-Real-IP; drop table',
-				),
-			)
-		);
-		self::get( $base, '/wp-admin/options.php', array( 'Referer: ' . $base . '/wp-admin/options-general.php?page=kiscore' ), 'POST', $form, $cookies );
-		unlink( $cookies );
+		$save = static function ( string $key ) use ( $base, $cookies, $nonce ): void {
+			$form = http_build_query(
+				array(
+					'option_page'      => 'kiscore',
+					'action'           => 'update',
+					'_wpnonce'         => $nonce[1],
+					'kiscore_settings' => array( 'connection_key' => $key ),
+				)
+			);
+			self::get( $base, '/wp-admin/options.php', array( 'Referer: ' . $base . '/wp-admin/options-general.php?page=kiscore' ), 'POST', $form, $cookies );
+		};
+		$stored = static function (): array {
+			return json_decode( self::wp( 'option', 'get', 'kiscore_settings', '--format=json' ), true );
+		};
 
-		$this->assertSame(
-			array(
-				'site_id'          => 'new-site',
-				'tracking_secret'  => 'e2e-secret',
-				'client_ip_header' => 'X-Real-IPdroptable',
-			),
-			json_decode( self::wp( 'option', 'get', 'kiscore_settings', '--format=json' ), true )
-		);
+		$save( ' new-site.new-secret ' );
+		$this->assertSame( array( 'site_id' => 'new-site', 'tracking_secret' => 'new-secret' ), $stored() );
+
+		// A mistyped key and an empty field keep the working connection.
+		$save( 'new-site' );
+		$save( '' );
+		unlink( $cookies );
+		$this->assertSame( array( 'site_id' => 'new-site', 'tracking_secret' => 'new-secret' ), $stored() );
+	}
+
+	// The opcache rereads wp-config.php only every two seconds
+	// (opcache.revalidate_freq), so web requests see a change after that.
+	private static function define_constant( string $name, string $value ): void {
+		self::wp( 'config', 'set', $name, $value, '--type=constant' );
+		usleep( 2100000 );
+	}
+
+	private static function remove_constant( string $name ): void {
+		self::wp( 'config', 'delete', $name, '--type=constant' );
+		usleep( 2100000 );
 	}
 
 	private static function configure( array $settings ): void {

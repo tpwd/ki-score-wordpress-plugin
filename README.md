@@ -8,13 +8,15 @@ description is in [readme.txt](readme.txt).
 ## For site owners
 
 1. Download `kiscore.zip` and upload it under **Plugins → Add New → Upload Plugin**, then activate it.
-2. Copy site ID and tracking secret from **Traffic Overview → Integration** in the KIscore dashboard.
-3. Enter both under **Settings → KIscore**, save, click **Check connection**.
+2. Copy the connection key from **Settings → Traffic tracking → WordPress** in the KIscore dashboard.
+3. Paste it under **Settings → KIscore**, save, click **Check connection**.
 
-Behind a proxy or CDN, also enter the header that carries the visitor IP (the
-settings page warns when it sees a private address). Site ID, secret and IP
-header can instead be defined in `wp-config.php` or as environment variables:
-`KISCORE_SITE_ID`, `KISCORE_TRACKING_SECRET`, `KISCORE_CLIENT_IP_HEADER`.
+Behind Cloudflare the visitor IP comes from `CF-Connecting-IP` automatically.
+Behind another proxy or CDN, define the header that carries the visitor IP as
+`KISCORE_CLIENT_IP_HEADER` in `wp-config.php` (the settings page warns when it
+sees a private address). The connection key can be defined the same way as
+`KISCORE_CONNECTION_KEY`, also as environment variable; the 1.0 names
+`KISCORE_SITE_ID` and `KISCORE_TRACKING_SECRET` still work.
 `KISCORE_API_ENDPOINT` points the plugin at another API, e.g. in tests.
 
 ## How it works

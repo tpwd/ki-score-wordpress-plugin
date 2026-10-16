@@ -134,17 +134,33 @@ final class Page_View {
 	}
 
 	/**
-	 * The visitor IP from REMOTE_ADDR or from a header that the hosting proxy
-	 * overwrites. Lists and anything but a single IP are rejected.
+	 * The visitor IP from a configured header that the hosting proxy
+	 * overwrites. Without one, Cloudflare's CF-Connecting-IP and then
+	 * REMOTE_ADDR. Lists and anything but a single IP are rejected.
+	 *
+	 * The IP only groups an AI referral into one daily visit and is shown next
+	 * to crawler hits, so a forged Cloudflare header only miscounts the
+	 * forger's own visit.
 	 *
 	 * @param array  $server    $_SERVER or an equivalent array.
-	 * @param string $ip_header Header name, e.g. "X-Real-IP". Empty: REMOTE_ADDR.
+	 * @param string $ip_header Header name, e.g. "X-Real-IP". Empty: automatic.
 	 */
 	public static function client_ip( array $server, string $ip_header ): ?string {
 		$header = self::header_name( $ip_header );
-		$key    = '' === $header ? 'REMOTE_ADDR' : 'HTTP_' . strtoupper( str_replace( '-', '_', $header ) );
-		$value  = trim( (string) ( $server[ $key ] ?? '' ) );
+		if ( '' !== $header ) {
+			return self::single_ip( $server[ 'HTTP_' . strtoupper( str_replace( '-', '_', $header ) ) ] ?? '' );
+		}
 
+		return self::single_ip( $server['HTTP_CF_CONNECTING_IP'] ?? '' ) ?? self::single_ip( $server['REMOTE_ADDR'] ?? '' );
+	}
+
+	/**
+	 * The value when it is exactly one valid IP address.
+	 *
+	 * @param mixed $value Header or server variable.
+	 */
+	private static function single_ip( $value ): ?string {
+		$value = trim( (string) $value );
 		return false === filter_var( $value, FILTER_VALIDATE_IP ) ? null : $value;
 	}
 

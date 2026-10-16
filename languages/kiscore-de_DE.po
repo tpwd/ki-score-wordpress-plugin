@@ -35,8 +35,8 @@ msgid "KIscore is active but not connected yet."
 msgstr "KIscore ist aktiv, aber noch nicht verbunden."
 
 #: includes/class-admin.php:86
-msgid "Enter site ID and tracking secret"
-msgstr "Site-ID und Tracking-Secret eintragen"
+msgid "Enter the connection key"
+msgstr "Verbindungsschlüssel eintragen"
 
 #: includes/class-admin.php:95
 msgid "You are not allowed to do this."
@@ -46,133 +46,123 @@ msgstr "Du darfst diese Aktion nicht ausführen."
 msgid "KIscore shows which AI crawlers visit your site and which visitors come from ChatGPT, Perplexity and other AI assistants. The plugin reports page views from your server. It adds no script and no cookie to your pages."
 msgstr "KIscore zeigt, welche KI-Crawler deine Website besuchen und welche Besucher über ChatGPT, Perplexity und andere KI-Assistenten kommen. Das Plugin meldet Seitenaufrufe von deinem Server aus. Es fügt deinen Seiten weder Script noch Cookie hinzu."
 
-#: includes/class-admin.php:132
-msgid "Site ID"
-msgstr "Site-ID"
-
-#. translators: %s: link to the KIscore dashboard
-#: includes/class-admin.php:135
-#, php-format
-msgid "Copy it from %s in the KIscore dashboard."
-msgstr "Kopiere sie im KIscore-Dashboard unter %s."
-
-#: includes/class-admin.php:136
-msgid "Traffic Overview → Integration"
-msgstr "Traffic Overview → Integration"
-
-#: includes/class-admin.php:141
-msgid "Tracking secret"
-msgstr "Tracking-Secret"
-
-#: includes/class-admin.php:142
-msgid "Shown next to the site ID. It stays on your server and is not displayed here again."
-msgstr "Steht neben der Site-ID. Es bleibt auf deinem Server und wird hier nicht wieder angezeigt."
-
-#: includes/class-admin.php:146
-msgid "Visitor IP header"
-msgstr "Header mit Besucher-IP"
-
-#: includes/class-admin.php:147
-msgid "Leave empty unless your site runs behind a proxy or CDN. Then enter the header it fills with the visitor IP, e.g. X-Real-IP or CF-Connecting-IP. Without it, every visit would count as one visitor."
-msgstr "Leer lassen, außer deine Website läuft hinter einem Proxy oder CDN. Dann trag den Header ein, in den dieser die Besucher-IP schreibt, etwa X-Real-IP oder CF-Connecting-IP. Ohne ihn zählten alle Besuche als ein Besucher."
-
-#: includes/class-admin.php:154
+#: includes/class-admin.php:134
 msgid "Status"
 msgstr "Status"
 
-#: includes/class-admin.php:157
+#: includes/class-admin.php:137
 msgid "Last report"
 msgstr "Letzte Meldung"
 
-#: includes/class-admin.php:161
+#: includes/class-admin.php:141
 msgid "Connection"
 msgstr "Verbindung"
 
-#: includes/class-admin.php:166
+#: includes/class-admin.php:146
 msgid "Check connection"
 msgstr "Verbindung prüfen"
 
-#: includes/class-admin.php:168
-msgid "Checks site ID and tracking secret without sending visitor data."
-msgstr "Prüft Site-ID und Tracking-Secret, ohne Besucherdaten zu senden."
+#: includes/class-admin.php:148
+msgid "Checks the connection key without sending visitor data."
+msgstr "Prüft den Verbindungsschlüssel, ohne Besucherdaten zu senden."
 
-#: includes/class-admin.php:172
+#: includes/class-admin.php:152
 msgid "Test visit"
 msgstr "Testbesuch"
 
 #. translators: %s: query string to append to a page URL
-#: includes/class-admin.php:178
+#: includes/class-admin.php:158
 #, php-format
 msgid "Open any page of your site with %s. The visit then appears in KIscore under KI-Verweise."
 msgstr "Ruf eine beliebige Seite deiner Website mit %s auf. Der Besuch erscheint danach in KIscore unter „KI-Verweise“."
 
-#: includes/class-admin.php:184
+#: includes/class-admin.php:164
 msgid "A page cache is active. Pages served from the cache do not reach WordPress and are not reported, so AI crawlers that only get cached pages can be missing in KIscore."
 msgstr "Ein Seiten-Cache ist aktiv. Seiten aus dem Cache erreichen WordPress nicht und werden nicht gemeldet. KI-Crawler, die nur gecachte Seiten abrufen, können deshalb in KIscore fehlen."
 
-#: includes/class-admin.php:228
+#: includes/class-admin.php:184
+msgid "Connection key"
+msgstr "Verbindungsschlüssel"
+
+#: includes/class-admin.php:205
 msgid "Set in wp-config.php."
 msgstr "In wp-config.php festgelegt."
 
-#: includes/class-admin.php:229
+#: includes/class-admin.php:206
 msgid "Set as environment variable."
 msgstr "Als Umgebungsvariable festgelegt."
 
-#: includes/class-admin.php:261
-msgid "Saved. Type a new one to replace it."
-msgstr "Gespeichert. Zum Ändern neu eingeben."
+#. translators: %s: link to the KIscore dashboard
+#: includes/class-admin.php:211
+#, php-format
+msgid "Copy it from %s in the KIscore dashboard. It stays on your server and is not displayed here again."
+msgstr "Kopiere ihn im KIscore-Dashboard unter %s. Er bleibt auf deinem Server und wird hier nicht wieder angezeigt."
 
-#: includes/class-admin.php:288
+#: includes/class-admin.php:212
+msgid "Settings → Traffic tracking → WordPress"
+msgstr "Einstellungen → Traffic-Tracking → WordPress"
+
+#. translators: %s: site ID
+#: includes/class-admin.php:222
+#, php-format
+msgid "Connected to site ID %s."
+msgstr "Verbunden mit Site-ID %s."
+
+#: includes/class-admin.php:252
 msgid "No page view reported yet."
 msgstr "Noch kein Seitenaufruf gemeldet."
 
 #. translators: 1: time span such as "5 mins", 2: result of the report
-#: includes/class-admin.php:294
+#: includes/class-admin.php:258
 #, php-format
 msgid "%1$s ago: %2$s"
 msgstr "vor %1$s: %2$s"
 
-#: includes/class-admin.php:309
+#: includes/class-admin.php:272
 msgid "KIscore accepts data from this site."
 msgstr "KIscore nimmt Daten dieser Website an."
 
-#: includes/class-admin.php:311
-msgid "KIscore rejected the site ID or tracking secret (HTTP 401). Copy both again from the KIscore dashboard."
-msgstr "KIscore hat Site-ID oder Tracking-Secret abgelehnt (HTTP 401). Kopiere beide erneut aus dem KIscore-Dashboard."
+#: includes/class-admin.php:277
+msgid "KIscore rejected the connection key (HTTP 401). Copy it again from the KIscore dashboard."
+msgstr "KIscore hat den Verbindungsschlüssel abgelehnt (HTTP 401). Kopiere ihn erneut aus dem KIscore-Dashboard."
 
-#: includes/class-admin.php:313
+#: includes/class-admin.php:279
 msgid "KIscore did not accept the data (HTTP 422). Check that the subscription for this website is active."
 msgstr "KIscore hat die Daten nicht angenommen (HTTP 422). Prüfe, ob das Abo für diese Website aktiv ist."
 
-#: includes/class-admin.php:315
+#: includes/class-admin.php:281
 msgid "KIscore is limiting requests from this server right now (HTTP 429)."
 msgstr "KIscore begrenzt gerade die Anfragen dieses Servers (HTTP 429)."
 
 #. translators: %s: error message of the HTTP request
-#: includes/class-admin.php:318
+#: includes/class-admin.php:284
 #, php-format
 msgid "KIscore could not be reached: %s"
 msgstr "KIscore ist nicht erreichbar: %s"
 
 #. translators: %s: error message of the HTTP request
-#: includes/class-admin.php:318
+#: includes/class-admin.php:284
 msgid "no answer"
 msgstr "keine Antwort"
 
 #. translators: %d: HTTP status code
-#: includes/class-admin.php:321
+#: includes/class-admin.php:287
 #, php-format
 msgid "KIscore answered with HTTP %d."
 msgstr "KIscore antwortet mit HTTP %d."
 
 #. translators: %s: IP address
-#: includes/class-admin.php:350
+#: includes/class-admin.php:318
 #, php-format
-msgid "WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN, so enter the header with the visitor IP below."
-msgstr "WordPress erhält Anfragen von %s, einer privaten Adresse. Deine Website läuft vermutlich hinter einem Proxy oder CDN. Trag deshalb unten den Header mit der Besucher-IP ein."
+msgid "WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN. Name the header with the visitor IP in wp-config.php, e.g. define( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );"
+msgstr "WordPress erhält Anfragen von %s, einer privaten Adresse. Deine Website läuft vermutlich hinter einem Proxy oder CDN. Nenn den Header mit der Besucher-IP in der wp-config.php, etwa define( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );"
 
 #. translators: %s: list of header names
-#: includes/class-admin.php:358
+#: includes/class-admin.php:326
 #, php-format
 msgid "Your current request carries: %s."
 msgstr "Deine aktuelle Anfrage enthält: %s."
+
+#: includes/class-settings.php:126
+msgid "This is not a connection key. Copy it again from the KIscore dashboard; it has the form site-id.secret."
+msgstr "Das ist kein Verbindungsschlüssel. Kopiere ihn erneut aus dem KIscore-Dashboard, er hat die Form site-id.secret."
