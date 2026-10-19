@@ -78,7 +78,7 @@ The "Check connection" button sends one request without visitor data.
 
 = 1.1.0 =
 * One connection key from the KIscore dashboard replaces the separate site ID and tracking secret. Existing settings keep working.
-* Behind Cloudflare the visitor IP is read from CF-Connecting-IP without configuration. Other proxy headers are set with KISCORE_CLIENT_IP_HEADER in wp-config.php; the settings field is gone.
+* Behind Cloudflare the visitor IP is read from CF-Connecting-IP without configuration. Other proxy headers are set with KISCORE_CLIENT_IP_HEADER in wp-config.php; the settings field is gone, and a header saved there in 1.0 no longer applies.
 
 = 1.0.1 =
 * The connection check accepts KIscore's answer instead of reporting HTTP 201 as an error.
