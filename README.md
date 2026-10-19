@@ -84,12 +84,16 @@ The release source is the GitLab repository
 [`tpwd/ki-score-wordpress-plugin`](https://gitlab.tpwd.de/tpwd/ki-score-wordpress-plugin).
 After the checks above pass, commit the version and tag that commit as
 `v<version>`. Build from that clean tagged checkout, publish `dist/kiscore.zip`
-and its SHA-256 checksum as assets of the GitLab release, then copy that exact
-ZIP to KIscore's `dashboard/public/downloads/kiscore-wordpress-<version>.zip`.
+and its SHA-256 checksum as assets of the GitLab release. Fast-forward the
+public GitHub repository to the same source, push the same tag, and publish
+the identical ZIP and checksum there. Then copy that exact ZIP to KIscore's
+`dashboard/public/downloads/kiscore-wordpress-<version>.zip`.
 Record the release URL, source commit and checksum in KIscore's integration
 documentation, and update `WORDPRESS_PLUGIN` there. Do not change plugin source
 inside the KIscore repository or rebuild the ZIP there.
 
-The GitLab repository is private. KIscore serves the release ZIP itself so
-site owners can download it without a GitLab account. The older GitHub mirror
-is not the source for this release process.
+The GitLab repository is private. Public source and releases are available at
+[`tpwd/ki-score-wordpress-plugin` on GitHub](https://github.com/tpwd/ki-score-wordpress-plugin).
+KIscore also serves the same release ZIP directly. GitLab remains the source
+for development and reviews; publish the tested release to both repositories
+instead of maintaining separate versions.
