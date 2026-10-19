@@ -18,8 +18,8 @@ final class TrackingTest extends TestCase {
 
 	public static function servers(): array {
 		return array(
-			'apache with mod_php' => array( 'http://localhost:' . self::port( 'KISCORE_E2E_APACHE_PORT', 8091 ), false ),
-			'nginx with php-fpm'  => array( 'http://localhost:' . self::port( 'KISCORE_E2E_FPM_PORT', 8092 ), true ),
+			'apache with mod_php' => array( 'http://localhost:' . self::port( 'KISCORE_E2E_APACHE_PORT', 8091 ) ),
+			'nginx with php-fpm'  => array( 'http://localhost:' . self::port( 'KISCORE_E2E_FPM_PORT', 8092 ) ),
 		);
 	}
 
@@ -83,15 +83,27 @@ final class TrackingTest extends TestCase {
 	/**
 	 * @dataProvider servers
 	 */
-	public function test_a_slow_api_does_not_hold_back_the_page( string $base, bool $finishes_request_early ): void {
+	public function test_a_slow_api_does_not_hold_back_the_page( string $base ): void {
 		self::collector( 'POST', '/delay?seconds=3' );
 		self::get( $base, '/', array() );
 
-		$response = self::get( $base, '/', array( 'User-Agent: KIscore-E2E-Slow/' . uniqid() ) );
+		$agent    = 'KIscore-E2E-Slow/' . uniqid();
+		$response = self::get( $base, '/', array( 'User-Agent: ' . $agent ) );
 		$this->assertSame( 200, $response['status'] );
-		// PHP-FPM hands the page over before sending. mod_php cannot, there the
-		// timeout of one second bounds the delay.
-		$this->assertLessThan( $finishes_request_early ? 0.8 : 2.0, $response['seconds'] );
+		$this->assertLessThan( 0.8, $response['seconds'] );
+		$this->assertSame( '/track/e2e-site', self::hit_from( $agent )['path'] );
+	}
+
+	public function test_an_unreachable_api_does_not_fail_or_hold_back_the_apache_page(): void {
+		list( $base ) = self::servers()['apache with mod_php'];
+		self::define_constant( 'KISCORE_API_ENDPOINT', 'http://collector:1/track' );
+		try {
+			$response = self::get( $base, '/', array( 'User-Agent: KIscore-E2E-Unreachable/' . uniqid() ) );
+		} finally {
+			self::remove_constant( 'KISCORE_API_ENDPOINT' );
+		}
+		$this->assertSame( 200, $response['status'] );
+		$this->assertLessThan( 0.8, $response['seconds'] );
 	}
 
 	// Only wp-config.php sets the header; the settings page has no field for
@@ -149,7 +161,9 @@ final class TrackingTest extends TestCase {
 	}
 
 	public function test_remembers_the_last_answer_of_the_api(): void {
-		list( $base ) = self::servers()['apache with mod_php'];
+		// PHP-FPM can read the answer after finishing the page. Apache sends
+		// without waiting, so it cannot confirm the automatic delivery status.
+		list( $base ) = self::servers()['nginx with php-fpm'];
 		self::configure( array( 'tracking_secret' => 'wrong-secret' ) + self::SETTINGS );
 		$agent = 'KIscore-E2E-Delivery/' . uniqid();
 		self::get( $base, '/', array( 'User-Agent: ' . $agent ) );

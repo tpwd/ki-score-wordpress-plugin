@@ -3,7 +3,7 @@ Tags: ai, crawler, chatgpt, analytics, geo
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -75,6 +75,10 @@ For every reported page view it sends: the path with its `utm_*` parameters, the
 The "Check connection" button sends one request without visitor data.
 
 == Changelog ==
+
+= 1.1.1 =
+* Send page views without waiting for the API response on Apache/mod_php.
+* Keep confirmed delivery status separate from background delivery without a response.
 
 = 1.1.0 =
 * One connection key from the KIscore dashboard replaces the separate site ID and tracking secret. Existing settings keep working.

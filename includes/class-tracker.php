@@ -100,7 +100,7 @@ final class Tracker {
 
 	/**
 	 * On PHP-FPM and LiteSpeed the visitor gets the page first and the request
-	 * runs afterwards. Elsewhere it runs before PHP ends, with a shorter timeout.
+	 * runs afterwards. Elsewhere send without waiting for the API response.
 	 *
 	 * @param array $payload Page view from Page_View::payload().
 	 */
@@ -118,7 +118,14 @@ final class Tracker {
 			$finished = false;
 		}
 
-		$response = self::post( $payload, $finished ? 2 : 1 );
+		if ( ! $finished ) {
+			// No response is available in this mode: do not report an invented
+			// delivery status or replace a previously confirmed API answer.
+			self::post( $payload, 0.01, false );
+			return;
+		}
+
+		$response = self::post( $payload, 2 );
 		self::remember_delivery( is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -136,23 +143,48 @@ final class Tracker {
 	 *
 	 * @param array $payload Request body.
 	 * @param float $timeout Seconds.
+	 * @param bool  $blocking Whether to wait for the API response.
 	 * @return array|\WP_Error
 	 */
-	private static function post( array $payload, float $timeout ) {
-		return wp_remote_post(
-			Settings::tracking_url(),
-			array(
-				'headers'     => array(
-					'Content-Type'              => 'application/json',
-					'X-Kiscore-Tracking-Secret' => Settings::get( 'tracking_secret' ),
-				),
-				'body'        => wp_json_encode( $payload ),
-				'timeout'     => $timeout,
-				// A redirect would forward the secret to another host.
-				'redirection' => 0,
-				'user-agent'  => 'KIscore-WordPress/' . KISCORE_VERSION,
-			)
-		);
+	private static function post( array $payload, float $timeout, bool $blocking = true ) {
+		$url       = Settings::tracking_url();
+		$transport = static function ( $request_url, $headers, $data, $type, &$options ) use ( $url ): void {
+			if ( $request_url !== $url || $options['blocking'] ) {
+				return;
+			}
+			// Requests' cURL transport waits at least one second even for
+			// blocking=false. Its socket transport returns after sending the
+			// request, while keeping WordPress' TLS, proxy and HTTP policies.
+			$options['transport']       = class_exists( '\WpOrg\Requests\Transport\Fsockopen' )
+				? '\WpOrg\Requests\Transport\Fsockopen'
+				: 'Requests_Transport_fsockopen'; // WordPress 6.0 and 6.1.
+			$options['connect_timeout'] = 1;
+		};
+		if ( ! $blocking ) {
+			add_action( 'requests-requests.before_request', $transport, 10, 5 );
+		}
+
+		try {
+			return wp_remote_post(
+				$url,
+				array(
+					'headers'     => array(
+						'Content-Type'              => 'application/json',
+						'X-Kiscore-Tracking-Secret' => Settings::get( 'tracking_secret' ),
+					),
+					'body'        => wp_json_encode( $payload ),
+					'timeout'     => $timeout,
+					'blocking'    => $blocking,
+					// A redirect would forward the secret to another host.
+					'redirection' => 0,
+					'user-agent'  => 'KIscore-WordPress/' . KISCORE_VERSION,
+				)
+			);
+		} finally {
+			if ( ! $blocking ) {
+				remove_action( 'requests-requests.before_request', $transport, 10 );
+			}
+		}
 	}
 
 	/**

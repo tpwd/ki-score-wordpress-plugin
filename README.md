@@ -26,12 +26,13 @@ sees a private address). The connection key can be defined the same way as
   robots/preview, no browser fetch or prefetch (`Sec-Fetch-Mode`,
   `Sec-Purpose`), and a single valid visitor IP.
 - The report runs on `shutdown`. On PHP-FPM and LiteSpeed the page is handed
-  to the visitor first (`fastcgi_finish_request`); elsewhere the request is
-  limited to one second. Redirect responses are not reported.
+  to the visitor first (`fastcgi_finish_request`); elsewhere delivery does
+  not wait for the API response. Redirect responses are not reported.
 - Sent: path plus `utm_*` parameters, user agent, referrer, visitor IP. The
   secret travels in `X-Kiscore-Tracking-Secret`; redirects are refused.
 - The settings page shows the last API answer (stored when it changes, at most
-  hourly otherwise) and offers a connection check that sends no visitor data.
+  hourly otherwise, only when the runtime can read it after finishing the page)
+  and offers a connection check that sends no visitor data and waits for a real answer.
 
 ## Development
 
@@ -78,3 +79,17 @@ Bump the version in the plugin header, `KISCORE_VERSION` (both in
 build when they differ. For the wordpress.org directory, `readme.txt` still
 needs a `Contributors:` line with wordpress.org user names and links to the
 KIscore terms and privacy policy in "External services".
+
+The release source is the GitLab repository
+[`tpwd/ki-score-wordpress-plugin`](https://gitlab.tpwd.de/tpwd/ki-score-wordpress-plugin).
+After the checks above pass, commit the version and tag that commit as
+`v<version>`. Build from that clean tagged checkout, publish `dist/kiscore.zip`
+and its SHA-256 checksum as assets of the GitLab release, then copy that exact
+ZIP to KIscore's `dashboard/public/downloads/kiscore-wordpress-<version>.zip`.
+Record the release URL, source commit and checksum in KIscore's integration
+documentation, and update `WORDPRESS_PLUGIN` there. Do not change plugin source
+inside the KIscore repository or rebuild the ZIP there.
+
+The GitLab repository is private. KIscore serves the release ZIP itself so
+site owners can download it without a GitLab account. The older GitHub mirror
+is not the source for this release process.
