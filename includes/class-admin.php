@@ -18,12 +18,7 @@ final class Admin {
 
 	const CHECK_ACTION = 'kiscore_check_connection';
 
-	const DASHBOARD_URL = 'https://toolkit.kiscore.ai/dashboard/traffic/integration';
-
-	/**
-	 * Headers that hosting proxies and CDNs commonly fill with the visitor IP.
-	 */
-	const IP_HEADERS = array( 'X-Real-IP', 'CF-Connecting-IP', 'True-Client-IP', 'X-NF-Client-Connection-IP' );
+	const DASHBOARD_URL = 'https://toolkit.kiscore.ai/dashboard/integration';
 
 	/**
 	 * Hooks the page, the setting, the notice and the connection check into the admin.
@@ -83,7 +78,7 @@ final class Admin {
 			'<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
 			esc_html__( 'KIscore is active but not connected yet.', 'kiscore' ),
 			esc_url( self::page_url() ),
-			esc_html__( 'Enter site ID and tracking secret', 'kiscore' )
+			esc_html__( 'Enter the connection key', 'kiscore' )
 		);
 	}
 
@@ -126,27 +121,7 @@ final class Admin {
 			<form method="post" action="options.php">
 				<?php settings_fields( self::PAGE ); ?>
 				<table class="form-table" role="presentation">
-					<?php
-					self::render_field(
-						'site_id',
-						__( 'Site ID', 'kiscore' ),
-						sprintf(
-							/* translators: %s: link to the KIscore dashboard */
-							__( 'Copy it from %s in the KIscore dashboard.', 'kiscore' ),
-							'<a href="' . esc_url( self::DASHBOARD_URL ) . '" target="_blank" rel="noopener">' . esc_html__( 'Traffic Overview → Integration', 'kiscore' ) . '</a>'
-						)
-					);
-					self::render_field(
-						'tracking_secret',
-						__( 'Tracking secret', 'kiscore' ),
-						__( 'Shown next to the site ID. It stays on your server and is not displayed here again.', 'kiscore' )
-					);
-					self::render_field(
-						'client_ip_header',
-						__( 'Visitor IP header', 'kiscore' ),
-						__( 'Leave empty unless your site runs behind a proxy or CDN. Then enter the header it fills with the visitor IP, e.g. X-Real-IP or CF-Connecting-IP. Without it, every visit would count as one visitor.', 'kiscore' )
-					);
-					?>
+					<?php self::render_connection_key_field(); ?>
 				</table>
 				<?php submit_button(); ?>
 			</form>
@@ -165,7 +140,7 @@ final class Admin {
 							<?php wp_nonce_field( self::CHECK_ACTION ); ?>
 							<?php submit_button( __( 'Check connection', 'kiscore' ), 'secondary', 'submit', false, Settings::is_configured() ? array() : array( 'disabled' => 'disabled' ) ); ?>
 						</form>
-						<p class="description"><?php esc_html_e( 'Checks site ID and tracking secret without sending visitor data.', 'kiscore' ); ?></p>
+						<p class="description"><?php esc_html_e( 'Checks the connection key without sending visitor data.', 'kiscore' ); ?></p>
 					</td>
 				</tr>
 				<tr>
@@ -191,34 +166,31 @@ final class Admin {
 	}
 
 	/**
-	 * One row of the settings form. A value set in wp-config.php or the
-	 * environment is shown read-only; the secret is never printed.
-	 *
-	 * @param string $field       Key of Settings::FIELDS.
-	 * @param string $label       Row label.
-	 * @param string $description Help text, may contain a link.
+	 * The connection key field. The key holds the tracking secret, so the page
+	 * never prints it; it shows the site ID it belongs to instead. A key set in
+	 * wp-config.php or the environment locks the field.
 	 */
-	private static function render_field( string $field, string $label, string $description ): void {
-		$id     = 'kiscore-' . str_replace( '_', '-', $field );
-		$source = Settings::source( $field );
-		$secret = 'tracking_secret' === $field;
+	private static function render_connection_key_field(): void {
+		$source = Settings::source( 'tracking_secret' );
 		$locked = in_array( $source, array( 'constant', 'environment' ), true );
+		$site   = Settings::get( 'site_id' );
 		?>
 		<tr>
-			<th scope="row"><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $label ); ?></label></th>
+			<th scope="row"><label for="kiscore-connection-key"><?php esc_html_e( 'Connection key', 'kiscore' ); ?></label></th>
 			<td>
 				<input
-					type="<?php echo $secret ? 'password' : 'text'; ?>"
-					id="<?php echo esc_attr( $id ); ?>"
-					class="regular-text"
+					type="password"
+					id="kiscore-connection-key"
+					class="regular-text code"
 					autocomplete="off"
+					spellcheck="false"
 					<?php if ( $locked ) : ?>
 						readonly
 					<?php else : ?>
-						name="<?php echo esc_attr( Settings::OPTION . '[' . $field . ']' ); ?>"
+						name="<?php echo esc_attr( Settings::OPTION . '[connection_key]' ); ?>"
 					<?php endif; ?>
-					value="<?php echo $secret ? '' : esc_attr( Settings::get( $field ) ); ?>"
-					placeholder="<?php echo esc_attr( self::placeholder( $field, $source ) ); ?>"
+					value=""
+					placeholder="<?php echo esc_attr( Settings::is_configured() ? '••••••••' : '' ); ?>"
 				>
 				<p class="description">
 					<?php
@@ -229,41 +201,28 @@ final class Admin {
 								: __( 'Set as environment variable.', 'kiscore' )
 						);
 					} else {
-						echo wp_kses(
-							$description,
-							array(
-								'a' => array(
-									'href'   => true,
-									'target' => true,
-									'rel'    => true,
-								),
-							)
+						printf(
+							/* translators: %s: link to the KIscore dashboard */
+							esc_html__( 'Copy it from %s in the KIscore dashboard. It stays on your server and is not displayed here again.', 'kiscore' ),
+							'<a href="' . esc_url( self::DASHBOARD_URL ) . '" target="_blank" rel="noopener">' . esc_html__( 'Settings → Traffic tracking → WordPress', 'kiscore' ) . '</a>'
 						);
 					}
 					?>
 				</p>
+				<?php if ( '' !== $site ) : ?>
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: site ID */
+							esc_html__( 'Connected to site ID %s.', 'kiscore' ),
+							'<code>' . esc_html( $site ) . '</code>'
+						);
+						?>
+					</p>
+				<?php endif; ?>
 			</td>
 		</tr>
 		<?php
-	}
-
-	/**
-	 * Placeholder of a settings field.
-	 *
-	 * @param string $field  Key of Settings::FIELDS.
-	 * @param string $source Settings::source() of the field.
-	 */
-	private static function placeholder( string $field, string $source ): string {
-		if ( 'client_ip_header' === $field ) {
-			return 'REMOTE_ADDR';
-		}
-		if ( 'tracking_secret' === $field && 'option' === $source ) {
-			return __( 'Saved. Type a new one to replace it.', 'kiscore' );
-		}
-		if ( 'tracking_secret' === $field && '' !== $source ) {
-			return '••••••••';
-		}
-		return '';
 	}
 
 	/**
@@ -304,11 +263,13 @@ final class Admin {
 	 * @param string $error  Transport error, if any.
 	 */
 	private static function describe( int $status, string $error ): string {
+		if ( Tracker::accepted( $status ) ) {
+			return __( 'KIscore accepts data from this site.', 'kiscore' );
+		}
+
 		switch ( $status ) {
-			case 200:
-				return __( 'KIscore accepts data from this site.', 'kiscore' );
 			case 401:
-				return __( 'KIscore rejected the site ID or tracking secret (HTTP 401). Copy both again from the KIscore dashboard.', 'kiscore' );
+				return __( 'KIscore rejected the connection key (HTTP 401). Copy it again from the KIscore dashboard.', 'kiscore' );
 			case 422:
 				return __( 'KIscore did not accept the data (HTTP 422). Check that the subscription for this website is active.', 'kiscore' );
 			case 429:
@@ -325,10 +286,12 @@ final class Admin {
 	/**
 	 * Warns when WordPress only sees a private address, which means a proxy
 	 * stands in front of it, and names the headers that carry a visitor IP.
+	 * Cloudflare's header is used without configuration.
 	 */
 	private static function render_proxy_hint(): void {
 		$remote = (string) ( $_SERVER['REMOTE_ADDR'] ?? '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- validated below
 		if ( '' !== Settings::get( 'client_ip_header' )
+			|| isset( $_SERVER['HTTP_CF_CONNECTING_IP'] )
 			|| false === filter_var( $remote, FILTER_VALIDATE_IP )
 			|| false !== filter_var( $remote, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) ) {
 			return;
@@ -336,7 +299,7 @@ final class Admin {
 
 		$server    = wp_unslash( $_SERVER );
 		$available = array_filter(
-			self::IP_HEADERS,
+			Page_View::KNOWN_IP_HEADERS,
 			static function ( string $header ) use ( $server ): bool {
 				return null !== Page_View::client_ip( $server, $header );
 			}
@@ -347,7 +310,7 @@ final class Admin {
 			esc_html(
 				sprintf(
 					/* translators: %s: IP address */
-					__( 'WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN, so enter the header with the visitor IP below.', 'kiscore' ),
+					__( 'WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN. Name the header with the visitor IP in wp-config.php, e.g. define( \'KISCORE_CLIENT_IP_HEADER\', \'X-Real-IP\' );', 'kiscore' ),
 					$remote
 				)
 			),

@@ -21,6 +21,11 @@ final class Page_View {
 	const USER_AGENT_BYTES = 1024;
 	const REFERER_BYTES    = 2048;
 
+	/**
+	 * Headers that hosting proxies and CDNs commonly fill with the visitor IP.
+	 */
+	const KNOWN_IP_HEADERS = array( 'X-Real-IP', 'CF-Connecting-IP', 'True-Client-IP', 'X-NF-Client-Connection-IP' );
+
 	const STATIC_FILE = '/\.(?:ico|png|jpe?g|webp|avif|gif|svg|css|js|mjs|map|json|webmanifest|woff2?|ttf|otf|eot|pdf|xml|txt|mp4|webm|mp3)$/i';
 
 	/**
@@ -106,16 +111,56 @@ final class Page_View {
 	}
 
 	/**
-	 * The visitor IP from REMOTE_ADDR or from a header that the hosting proxy
-	 * overwrites. Lists and anything but a single IP are rejected.
+	 * A header name as HTTP spells it. Hosting docs often give the $_SERVER
+	 * key instead ("HTTP_X_REAL_IP"), which names the same header.
+	 *
+	 * @param string $name "X-Real-IP", "HTTP_X_REAL_IP" or "X_Real_IP".
+	 */
+	public static function header_name( string $name ): string {
+		$name = str_replace( '_', '-', (string) preg_replace( '/[^A-Za-z0-9_-]/', '', $name ) );
+		$name = (string) preg_replace( '/^HTTP-/i', '', $name );
+
+		// Before 1.0.1 saving dropped underscores ("HTTPXREALIP"). Known
+		// headers are recognised in that form; anything else stays as it is.
+		if ( false === strpos( $name, '-' ) ) {
+			foreach ( self::KNOWN_IP_HEADERS as $known ) {
+				$letters = strtoupper( str_replace( '-', '', $known ) );
+				if ( in_array( strtoupper( $name ), array( $letters, 'HTTP' . $letters ), true ) ) {
+					return $known;
+				}
+			}
+		}
+		return $name;
+	}
+
+	/**
+	 * The visitor IP from a configured header that the hosting proxy
+	 * overwrites. Without one, Cloudflare's CF-Connecting-IP and then
+	 * REMOTE_ADDR. Lists and anything but a single IP are rejected.
+	 *
+	 * The IP only groups an AI referral into one daily visit and is shown next
+	 * to crawler hits, so a forged Cloudflare header only miscounts the
+	 * forger's own visit.
 	 *
 	 * @param array  $server    $_SERVER or an equivalent array.
-	 * @param string $ip_header Header name, e.g. "X-Real-IP". Empty: REMOTE_ADDR.
+	 * @param string $ip_header Header name, e.g. "X-Real-IP". Empty: automatic.
 	 */
 	public static function client_ip( array $server, string $ip_header ): ?string {
-		$key   = '' === $ip_header ? 'REMOTE_ADDR' : 'HTTP_' . strtoupper( str_replace( '-', '_', $ip_header ) );
-		$value = trim( (string) ( $server[ $key ] ?? '' ) );
+		$header = self::header_name( $ip_header );
+		if ( '' !== $header ) {
+			return self::single_ip( $server[ 'HTTP_' . strtoupper( str_replace( '-', '_', $header ) ) ] ?? '' );
+		}
 
+		return self::single_ip( $server['HTTP_CF_CONNECTING_IP'] ?? '' ) ?? self::single_ip( $server['REMOTE_ADDR'] ?? '' );
+	}
+
+	/**
+	 * The value when it is exactly one valid IP address.
+	 *
+	 * @param mixed $value Header or server variable.
+	 */
+	private static function single_ip( $value ): ?string {
+		$value = trim( (string) $value );
 		return false === filter_var( $value, FILTER_VALIDATE_IP ) ? null : $value;
 	}
 

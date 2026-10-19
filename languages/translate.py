@@ -16,27 +16,25 @@ DE = {
         "Zeigt in KIscore, welche KI-Crawler deine Website besuchen und welche Besucher über ChatGPT, Perplexity und andere KI-Assistenten kommen. Serverseitig, ohne Script und Cookie."),
     "Settings": "Einstellungen",
     "KIscore is active but not connected yet.": "KIscore ist aktiv, aber noch nicht verbunden.",
-    "Enter site ID and tracking secret": "Site-ID und Tracking-Secret eintragen",
+    "Enter the connection key": "Verbindungsschlüssel eintragen",
     "You are not allowed to do this.": ("Sie dürfen diese Aktion nicht ausführen.", "Du darfst diese Aktion nicht ausführen."),
     "KIscore shows which AI crawlers visit your site and which visitors come from ChatGPT, Perplexity and other AI assistants. The plugin reports page views from your server. It adds no script and no cookie to your pages.": (
         "KIscore zeigt, welche KI-Crawler Ihre Website besuchen und welche Besucher über ChatGPT, Perplexity und andere KI-Assistenten kommen. Das Plugin meldet Seitenaufrufe von Ihrem Server aus. Es fügt Ihren Seiten weder Script noch Cookie hinzu.",
         "KIscore zeigt, welche KI-Crawler deine Website besuchen und welche Besucher über ChatGPT, Perplexity und andere KI-Assistenten kommen. Das Plugin meldet Seitenaufrufe von deinem Server aus. Es fügt deinen Seiten weder Script noch Cookie hinzu."),
-    "Site ID": "Site-ID",
-    "Copy it from %s in the KIscore dashboard.": ("Kopieren Sie sie im KIscore-Dashboard unter %s.", "Kopiere sie im KIscore-Dashboard unter %s."),
-    "Traffic Overview → Integration": "Traffic Overview → Integration",
-    "Tracking secret": "Tracking-Secret",
-    "Shown next to the site ID. It stays on your server and is not displayed here again.": (
-        "Steht neben der Site-ID. Es bleibt auf Ihrem Server und wird hier nicht wieder angezeigt.",
-        "Steht neben der Site-ID. Es bleibt auf deinem Server und wird hier nicht wieder angezeigt."),
-    "Visitor IP header": "Header mit Besucher-IP",
-    "Leave empty unless your site runs behind a proxy or CDN. Then enter the header it fills with the visitor IP, e.g. X-Real-IP or CF-Connecting-IP. Without it, every visit would count as one visitor.": (
-        "Leer lassen, außer Ihre Website läuft hinter einem Proxy oder CDN. Dann tragen Sie den Header ein, in den dieser die Besucher-IP schreibt, etwa X-Real-IP oder CF-Connecting-IP. Ohne ihn zählten alle Besuche als ein Besucher.",
-        "Leer lassen, außer deine Website läuft hinter einem Proxy oder CDN. Dann trag den Header ein, in den dieser die Besucher-IP schreibt, etwa X-Real-IP oder CF-Connecting-IP. Ohne ihn zählten alle Besuche als ein Besucher."),
+    "Connection key": "Verbindungsschlüssel",
+    "Copy it from %s in the KIscore dashboard. It stays on your server and is not displayed here again.": (
+        "Kopieren Sie ihn im KIscore-Dashboard unter %s. Er bleibt auf Ihrem Server und wird hier nicht wieder angezeigt.",
+        "Kopiere ihn im KIscore-Dashboard unter %s. Er bleibt auf deinem Server und wird hier nicht wieder angezeigt."),
+    "Settings → Traffic tracking → WordPress": "Einstellungen → Traffic-Tracking → WordPress",
+    "Connected to site ID %s.": "Verbunden mit Site-ID %s.",
+    "This is not a connection key. Copy it again from the KIscore dashboard; it has the form site-id.secret.": (
+        "Das ist kein Verbindungsschlüssel. Kopieren Sie ihn erneut aus dem KIscore-Dashboard, er hat die Form site-id.secret.",
+        "Das ist kein Verbindungsschlüssel. Kopiere ihn erneut aus dem KIscore-Dashboard, er hat die Form site-id.secret."),
     "Status": "Status",
     "Last report": "Letzte Meldung",
     "Connection": "Verbindung",
     "Check connection": "Verbindung prüfen",
-    "Checks site ID and tracking secret without sending visitor data.": "Prüft Site-ID und Tracking-Secret, ohne Besucherdaten zu senden.",
+    "Checks the connection key without sending visitor data.": "Prüft den Verbindungsschlüssel, ohne Besucherdaten zu senden.",
     "Test visit": "Testbesuch",
     "Open any page of your site with %s. The visit then appears in KIscore under KI-Verweise.": (
         "Rufen Sie eine beliebige Seite Ihrer Website mit %s auf. Der Besuch erscheint danach in KIscore unter „KI-Verweise“.",
@@ -45,13 +43,12 @@ DE = {
         "Ein Seiten-Cache ist aktiv. Seiten aus dem Cache erreichen WordPress nicht und werden nicht gemeldet. KI-Crawler, die nur gecachte Seiten abrufen, können deshalb in KIscore fehlen.",
     "Set in wp-config.php.": "In wp-config.php festgelegt.",
     "Set as environment variable.": "Als Umgebungsvariable festgelegt.",
-    "Saved. Type a new one to replace it.": "Gespeichert. Zum Ändern neu eingeben.",
     "No page view reported yet.": "Noch kein Seitenaufruf gemeldet.",
     "%1$s ago: %2$s": "vor %1$s: %2$s",
     "KIscore accepts data from this site.": "KIscore nimmt Daten dieser Website an.",
-    "KIscore rejected the site ID or tracking secret (HTTP 401). Copy both again from the KIscore dashboard.": (
-        "KIscore hat Site-ID oder Tracking-Secret abgelehnt (HTTP 401). Kopieren Sie beide erneut aus dem KIscore-Dashboard.",
-        "KIscore hat Site-ID oder Tracking-Secret abgelehnt (HTTP 401). Kopiere beide erneut aus dem KIscore-Dashboard."),
+    "KIscore rejected the connection key (HTTP 401). Copy it again from the KIscore dashboard.": (
+        "KIscore hat den Verbindungsschlüssel abgelehnt (HTTP 401). Kopieren Sie ihn erneut aus dem KIscore-Dashboard.",
+        "KIscore hat den Verbindungsschlüssel abgelehnt (HTTP 401). Kopiere ihn erneut aus dem KIscore-Dashboard."),
     "KIscore did not accept the data (HTTP 422). Check that the subscription for this website is active.": (
         "KIscore hat die Daten nicht angenommen (HTTP 422). Prüfen Sie, ob das Abo für diese Website aktiv ist.",
         "KIscore hat die Daten nicht angenommen (HTTP 422). Prüfe, ob das Abo für diese Website aktiv ist."),
@@ -59,9 +56,9 @@ DE = {
     "KIscore could not be reached: %s": "KIscore ist nicht erreichbar: %s",
     "no answer": "keine Antwort",
     "KIscore answered with HTTP %d.": "KIscore antwortet mit HTTP %d.",
-    "WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN, so enter the header with the visitor IP below.": (
-        "WordPress erhält Anfragen von %s, einer privaten Adresse. Ihre Website läuft vermutlich hinter einem Proxy oder CDN. Tragen Sie deshalb unten den Header mit der Besucher-IP ein.",
-        "WordPress erhält Anfragen von %s, einer privaten Adresse. Deine Website läuft vermutlich hinter einem Proxy oder CDN. Trag deshalb unten den Header mit der Besucher-IP ein."),
+    "WordPress receives requests from %s, a private address. Your site probably runs behind a proxy or CDN. Name the header with the visitor IP in wp-config.php, e.g. define( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );": (
+        "WordPress erhält Anfragen von %s, einer privaten Adresse. Ihre Website läuft vermutlich hinter einem Proxy oder CDN. Nennen Sie den Header mit der Besucher-IP in der wp-config.php, etwa define( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );",
+        "WordPress erhält Anfragen von %s, einer privaten Adresse. Deine Website läuft vermutlich hinter einem Proxy oder CDN. Nenn den Header mit der Besucher-IP in der wp-config.php, etwa define( 'KISCORE_CLIENT_IP_HEADER', 'X-Real-IP' );"),
     "Your current request carries: %s.": ("Ihre aktuelle Anfrage enthält: %s.", "Deine aktuelle Anfrage enthält: %s."),
 }
 

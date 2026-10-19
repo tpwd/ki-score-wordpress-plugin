@@ -46,7 +46,47 @@ final class PageViewTest extends TestCase {
 			)
 		);
 		$this->assertSame( '2001:db8::1', Page_View::payload( $server, 'CF-Connecting-IP' )['ip'] );
-		$this->assertSame( '10.0.0.5', Page_View::payload( $server )['ip'] );
+	}
+
+	// Cloudflare sends the visitor IP in CF-Connecting-IP. Without a configured
+	// header the plugin takes it, otherwise every visitor would get an edge IP.
+	public function test_takes_the_cloudflare_visitor_ip_without_configuration(): void {
+		$server = $this->server(
+			array(
+				'REMOTE_ADDR'           => '172.68.1.10',
+				'HTTP_CF_CONNECTING_IP' => '198.51.100.23',
+			)
+		);
+		$this->assertSame( '198.51.100.23', Page_View::payload( $server )['ip'] );
+
+		$server['HTTP_CF_CONNECTING_IP'] = 'not-an-ip';
+		$this->assertSame( '172.68.1.10', Page_View::payload( $server )['ip'] );
+	}
+
+	// Hosting docs often name the header as a $_SERVER key. Settings or a
+	// constant in that spelling must not switch tracking off.
+	public function test_accepts_the_header_in_server_variable_spelling(): void {
+		$server = $this->server(
+			array(
+				'REMOTE_ADDR'    => '10.0.0.5',
+				'HTTP_X_REAL_IP' => '198.51.100.23',
+			)
+		);
+		foreach ( array( 'HTTP_X_REAL_IP', 'X_Real_IP', ' x-real-ip ' ) as $header ) {
+			$this->assertSame( '198.51.100.23', Page_View::payload( $server, $header )['ip'], $header );
+		}
+		$this->assertSame( 'X-Real-IP', Page_View::header_name( 'HTTP_X_Real_IP' ) );
+	}
+
+	// Before 1.0.1 saving stripped underscores: "HTTP_X_REAL_IP" was stored as
+	// "HTTPXREALIP". Known proxy headers are recognised in that form.
+	public function test_recognises_a_header_saved_without_underscores(): void {
+		$this->assertSame( 'X-Real-IP', Page_View::header_name( 'HTTPXREALIP' ) );
+		$this->assertSame( 'CF-Connecting-IP', Page_View::header_name( 'CFCONNECTINGIP' ) );
+		$this->assertSame( 'XMYHEADER', Page_View::header_name( 'XMYHEADER' ) );
+
+		$server = $this->server( array( 'HTTP_X_REAL_IP' => '198.51.100.23' ) );
+		$this->assertSame( '198.51.100.23', Page_View::payload( $server, 'HTTPXREALIP' )['ip'] );
 	}
 
 	// Without the visitor's own IP, KIscore would count every visit as one

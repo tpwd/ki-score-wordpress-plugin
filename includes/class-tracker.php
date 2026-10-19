@@ -47,7 +47,7 @@ final class Tracker {
 	}
 
 	/**
-	 * Sends a request without visitor data. KIscore answers 200 when the site
+	 * Sends a request without visitor data. KIscore answers 201 when the site
 	 * ID and secret match and stores nothing, because it is neither a crawler
 	 * nor an AI referral.
 	 *
@@ -73,7 +73,7 @@ final class Tracker {
 
 		$status = (int) wp_remote_retrieve_response_code( $response );
 		return array(
-			'ok'     => 200 === $status,
+			'ok'     => self::accepted( $status ),
 			'status' => $status,
 			'error'  => '',
 		);
@@ -120,6 +120,15 @@ final class Tracker {
 
 		$response = self::post( $payload, $finished ? 2 : 1 );
 		self::remember_delivery( is_wp_error( $response ) ? 0 : (int) wp_remote_retrieve_response_code( $response ) );
+	}
+
+	/**
+	 * Whether KIscore accepted a report. The API answers 201, any 2xx counts.
+	 *
+	 * @param int $status HTTP status, 0 when KIscore was unreachable.
+	 */
+	public static function accepted( int $status ): bool {
+		return $status >= 200 && $status < 300;
 	}
 
 	/**
