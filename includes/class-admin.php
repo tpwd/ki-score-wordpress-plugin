@@ -21,11 +21,6 @@ final class Admin {
 	const DASHBOARD_URL = 'https://toolkit.kiscore.ai/dashboard/traffic/integration';
 
 	/**
-	 * Headers that hosting proxies and CDNs commonly fill with the visitor IP.
-	 */
-	const IP_HEADERS = array( 'X-Real-IP', 'CF-Connecting-IP', 'True-Client-IP', 'X-NF-Client-Connection-IP' );
-
-	/**
 	 * Hooks the page, the setting, the notice and the connection check into the admin.
 	 */
 	public static function register(): void {
@@ -338,7 +333,7 @@ final class Admin {
 
 		$server    = wp_unslash( $_SERVER );
 		$available = array_filter(
-			self::IP_HEADERS,
+			Page_View::KNOWN_IP_HEADERS,
 			static function ( string $header ) use ( $server ): bool {
 				return null !== Page_View::client_ip( $server, $header );
 			}

@@ -51,7 +51,7 @@ final class Settings {
 	public static function source( string $field ): string {
 		$name = self::FIELDS[ $field ];
 		if ( null !== self::external( $name ) ) {
-			return defined( $name ) ? 'constant' : 'environment';
+			return defined( $name ) && '' !== trim( (string) constant( $name ) ) ? 'constant' : 'environment';
 		}
 		return '' === self::get( $field ) ? '' : 'option';
 	}
@@ -93,12 +93,16 @@ final class Settings {
 
 	/**
 	 * Value of a constant or environment variable, null when neither is set.
-	 * An empty value counts as unset, so the settings page stays editable.
+	 * An empty value counts as unset: an empty constant leaves the value to
+	 * the environment variable, and without either the settings page applies.
 	 *
 	 * @param string $name Constant and environment variable name.
 	 */
 	private static function external( string $name ): ?string {
-		$value = defined( $name ) ? (string) constant( $name ) : getenv( $name );
-		return false === $value || '' === trim( $value ) ? null : trim( $value );
+		$value = defined( $name ) ? trim( (string) constant( $name ) ) : '';
+		if ( '' === $value ) {
+			$value = trim( (string) getenv( $name ) );
+		}
+		return '' === $value ? null : $value;
 	}
 }

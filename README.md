@@ -37,7 +37,7 @@ header can instead be defined in `wp-config.php` or as environment variables:
 composer install
 composer test          # unit tests (Page_View)
 composer test:php74    # syntax and unit tests on PHP 7.4, the minimum (Docker)
-composer lint          # WordPress coding standards
+composer lint          # WordPress coding standards and PHP 7.4 compatibility (PHPCompatibilityWP)
 composer test:e2e      # real WordPress in Docker: Apache/mod_php and nginx/PHP-FPM
 composer build         # dist/kiscore.zip
 ```

@@ -5,12 +5,14 @@
 	<file>includes</file>
 	<arg name="extensions" value="php"/>
 	<arg value="sp"/>
+	<!-- PHPCompatibilityWP reads testVersion: the plugin runs on PHP 7.4 and later. -->
 	<config name="testVersion" value="7.4-"/>
 	<config name="minimum_wp_version" value="6.0"/>
 	<rule ref="WordPress">
 		<!-- Class files are named after their class without the "class-kiscore-" prefix. -->
 		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
 	</rule>
+	<rule ref="PHPCompatibilityWP"/>
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">

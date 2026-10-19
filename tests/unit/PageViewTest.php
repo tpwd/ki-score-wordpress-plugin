@@ -64,6 +64,17 @@ final class PageViewTest extends TestCase {
 		$this->assertSame( 'X-Real-IP', Page_View::header_name( 'HTTP_X_Real_IP' ) );
 	}
 
+	// Before 1.0.1 saving stripped underscores: "HTTP_X_REAL_IP" was stored as
+	// "HTTPXREALIP". Known proxy headers are recognised in that form.
+	public function test_recognises_a_header_saved_without_underscores(): void {
+		$this->assertSame( 'X-Real-IP', Page_View::header_name( 'HTTPXREALIP' ) );
+		$this->assertSame( 'CF-Connecting-IP', Page_View::header_name( 'CFCONNECTINGIP' ) );
+		$this->assertSame( 'XMYHEADER', Page_View::header_name( 'XMYHEADER' ) );
+
+		$server = $this->server( array( 'HTTP_X_REAL_IP' => '198.51.100.23' ) );
+		$this->assertSame( '198.51.100.23', Page_View::payload( $server, 'HTTPXREALIP' )['ip'] );
+	}
+
 	// Without the visitor's own IP, KIscore would count every visit as one
 	// visitor with the IP of the proxy.
 	public function test_skips_requests_without_exactly_one_valid_ip(): void {

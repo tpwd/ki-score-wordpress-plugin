@@ -79,7 +79,8 @@ The "Check connection" button sends one request without visitor data.
 
 = 1.0.1 =
 * The connection check accepts KIscore's answer instead of reporting HTTP 201 as an error.
-* The visitor IP header may also be entered as HTTP_X_REAL_IP.
+* The visitor IP header may also be entered as HTTP_X_REAL_IP, and a header that version 1.0.0 saved without underscores (HTTPXREALIP) is recognised again.
+* An empty constant in wp-config.php no longer hides an environment variable of the same name.
 * An empty constant in wp-config.php no longer locks the settings field.
 * Deleting the plugin removes its settings on every site of a multisite network.
 * The FAQ explains how to exclude AI crawlers and AI referrals from a page cache.

@@ -7,6 +7,9 @@
     "php": ">=7.4"
   },
   "require-dev": {
+    "phpcompatibility/php-compatibility": "10.0.0-alpha2",
+    "phpcompatibility/phpcompatibility-paragonie": "2.0.0-alpha2",
+    "phpcompatibility/phpcompatibility-wp": "3.0.0-alpha2",
     "phpunit/phpunit": "^9.6",
     "wp-coding-standards/wpcs": "^3"
   },
