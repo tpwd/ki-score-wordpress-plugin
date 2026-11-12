@@ -234,6 +234,38 @@ final class TrackingTest extends TestCase {
 		usleep( 2100000 );
 	}
 
+	/**
+	 * A fresh install has no option row. WordPress then sanitises the form
+	 * value twice, and the first save used to store an empty connection.
+	 */
+	public function test_the_first_save_on_a_fresh_install_stores_the_connection(): void {
+		list( $base ) = self::servers()['apache with mod_php'];
+		$cookies      = tempnam( sys_get_temp_dir(), 'kiscore-e2e' );
+		self::get( $base, '/wp-login.php', array(), 'GET', null, $cookies );
+		self::get( $base, '/wp-login.php', array(), 'POST', 'log=e2e-admin&pwd=e2e-admin-password&testcookie=1', $cookies );
+		self::wp( 'option', 'delete', 'kiscore_settings' );
+
+		$page = self::get( $base, '/wp-admin/options-general.php?page=kiscore', array(), 'GET', null, $cookies );
+		preg_match( '/name="_wpnonce" value="([^"]+)"/', $page['body'], $nonce );
+		$form = http_build_query(
+			array(
+				'option_page'      => 'kiscore',
+				'action'           => 'update',
+				'_wpnonce'         => $nonce[1],
+				'kiscore_settings' => array( 'connection_key' => 'fresh-site.fresh-secret' ),
+			)
+		);
+		self::get( $base, '/wp-admin/options.php', array( 'Referer: ' . $base . '/wp-admin/options-general.php?page=kiscore' ), 'POST', $form, $cookies );
+
+		$this->assertSame(
+			array(
+				'site_id'         => 'fresh-site',
+				'tracking_secret' => 'fresh-secret',
+			),
+			json_decode( self::wp( 'option', 'get', 'kiscore_settings', '--format=json' ), true )
+		);
+	}
+
 	private static function configure( array $settings ): void {
 		self::wp( 'option', 'update', 'kiscore_settings', json_encode( $settings ), '--format=json' );
 	}

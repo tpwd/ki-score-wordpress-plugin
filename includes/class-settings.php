@@ -117,7 +117,9 @@ final class Settings {
 
 		$key = is_array( $input ) ? trim( sanitize_text_field( (string) ( $input['connection_key'] ?? '' ) ) ) : '';
 		if ( '' === $key ) {
-			return $stored;
+			// On the first save WordPress sanitises twice: update_option() hands
+			// the result of this callback to add_option(), which calls it again.
+			return self::already_split( $input ) ?? $stored;
 		}
 
 		$parsed = self::parse_connection_key( $key );
@@ -128,6 +130,20 @@ final class Settings {
 			return $stored;
 		}
 		return $parsed;
+	}
+
+	/**
+	 * Site ID and secret as this callback returns them, when the value has
+	 * that shape; null for a form submission or anything else.
+	 *
+	 * @param mixed $input Value handed to the sanitize callback.
+	 * @return array{site_id: string, tracking_secret: string}|null
+	 */
+	private static function already_split( $input ): ?array {
+		if ( ! is_array( $input ) || ! is_string( $input['site_id'] ?? null ) || ! is_string( $input['tracking_secret'] ?? null ) ) {
+			return null;
+		}
+		return self::parse_connection_key( $input['site_id'] . '.' . $input['tracking_secret'] );
 	}
 
 	/**
