@@ -3,7 +3,7 @@ Tags: ai, crawler, chatgpt, analytics, geo
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -74,7 +74,15 @@ For every reported page view it sends: the path with its `utm_*` parameters, the
 
 The "Check connection" button sends one request without visitor data.
 
+This applies to every visitor of your site, not only to AI traffic: KIscore decides on its side what is an AI crawler or an AI referral and discards the rest. Mention the transfer in the privacy policy of your site.
+
+The service is provided under the KIscore [terms of service](https://kiscore.ai/terms) and [privacy policy](https://kiscore.ai/privacy).
+
 == Changelog ==
+
+= 1.1.2 =
+* Store the connection key on the first save of a fresh install; it used to need a second save.
+* Link the KIscore terms and privacy policy and name the data transfer for the site's privacy policy.
 
 = 1.1.1 =
 * Send page views without waiting for the API response on Apache/mod_php.
