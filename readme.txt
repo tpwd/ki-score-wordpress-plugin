@@ -1,9 +1,10 @@
 === KIscore ===
+Contributors: tpwd
 Tags: ai, crawler, chatgpt, analytics, geo
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -79,6 +80,9 @@ This applies to every visitor of your site, not only to AI traffic: KIscore deci
 The service is provided under the KIscore [terms of service](https://kiscore.ai/terms) and [privacy policy](https://kiscore.ai/privacy).
 
 == Changelog ==
+
+= 1.1.3 =
+* Name the wordpress.org contributor; no change to the plugin itself.
 
 = 1.1.2 =
 * Store the connection key on the first save of a fresh install; it used to need a second save.

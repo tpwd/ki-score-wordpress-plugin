@@ -76,8 +76,8 @@ for l in de_DE de_DE_formal; do msgfmt -o languages/kiscore-$l.mo languages/kisc
 
 Bump the version in the plugin header, `KISCORE_VERSION` (both in
 `kiscore.php`) and `Stable tag` in `readme.txt`; `composer build` refuses to
-build when they differ. For the wordpress.org directory, `readme.txt` still
-needs a `Contributors:` line with wordpress.org user names.
+build when they differ. `Contributors:` in `readme.txt` names the
+wordpress.org account `tpwd`, which submits the plugin to the directory.
 
 The release source is the GitLab repository
 [`tpwd/ki-score-wordpress-plugin`](https://gitlab.tpwd.de/tpwd/ki-score-wordpress-plugin).
